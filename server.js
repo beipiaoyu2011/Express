@@ -3,20 +3,48 @@ var express = require('express');
 var app = express();
 var birds = require('./birds');
 var cookieParser = require('cookie-parser');
+//定义错误中间件
+var bodyParser = require('body-parser');
+var methodOverride = require('method-override');
+var options = {
+    dotfiles: 'ignore',
+    etag: false,
+    extensions: ['htm', 'html'],
+    index: false,
+    maxAge: '1d',
+    redirect: false,
+    setHeaders: function (res, path, stat) {
+        res.set('x-timestamp', Date.now());
+    }
+};
+//logErrors 将请求和错误信息写入标准错误输出、日志或类似服务
+function logErrors(err, req, res, next){
+    console.log(err.stack);
+    next(err);
+}
+//clientErrorHandler 的定义如下（注意这里将错误直接传给了 next）
+function clientErrorHandler(err, req, res, next){
+    if(req.xhr){
+        res.status(500).send({error: 'something blew up'});
+    }else {
+        next(err);
+    }
+}
+//errorHandler 能捕获所有错误
+function errorHandler(err, req, res, next){
+    res.status(500);
+    res.render('error',{error: err});
+}
+
+//设置渲染jade文件
 app.set('view engine', 'jade');
 // 加载用于解析 cookie 的中间件
 app.use(cookieParser());
-var options = {
-  dotfiles: 'ignore',
-  etag: false,
-  extensions: ['htm', 'html'],
-  index: false,
-  maxAge: '1d',
-  redirect: false,
-  setHeaders: function (res, path, stat) {
-    res.set('x-timestamp', Date.now());
-  }
-};
+app.use(bodyParser());
+app.use(methodOverride());
+app.use(logErrors);
+app.use(clientErrorHandler);
+app.use(errorHandler);
 app.use('/', birds, express.static('public', options));
 // app.use('/demo',express.static('public'));//demo 虚拟路径
 // app.use('/');//demo 虚拟路径
