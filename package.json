@@ -4,7 +4,9 @@
   "description": "",
   "main": "server.js",
   "dependencies": {
-    "express": "^4.14.1"
+    "cookie-parser": "^1.4.3",
+    "express": "^4.14.1",
+    "jade": "^1.11.0"
   },
   "devDependencies": {},
   "scripts": {
